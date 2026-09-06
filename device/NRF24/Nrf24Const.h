@@ -6,53 +6,49 @@ class Nrf24
 {
 public:
     // Основные регистры
-    static constexpr uint8_t    Config          = 0x00;  // Configuration Register
-    static constexpr uint8_t    EnAa            = 0x01;  // Enable "Auto Acknowledgment"
-    static constexpr uint8_t    EnRxAddr        = 0x02;  // Enable RX Addresses
-    static constexpr uint8_t    SetupAw         = 0x03;  // Setup of Address Widths
-    static constexpr uint8_t    SetupRetr       = 0x04;  // Setup of Automatic Retransmission
-    static constexpr uint8_t    RfCh            = 0x05;  // RF Channel
-    static constexpr uint8_t    RfSetup         = 0x06;  // RF Setup Register
-    static constexpr uint8_t    Status          = 0x07;  // Status Register
-    static constexpr uint8_t    ObserveTx       = 0x08;  // Observe TX
-    static constexpr uint8_t    Cd              = 0x09;  // Carrier Detect
-    static constexpr uint8_t    RxAddrP0        = 0x0A;  // Receive Address Data Pipe 0
-    static constexpr uint8_t    TxAddr          = 0x10;  // Transmit Address
-    static constexpr uint8_t    RxPwP0          = 0x11;  // Number of Bytes in RX Payload
-    static constexpr uint8_t    FifoStatus      = 0x17;  // FIFO Status Register
-    static constexpr uint8_t    DynPd           = 0x1C;  // Enable Dynamic Payload Length
-    static constexpr uint8_t    Feature         = 0x1D;  // Feature Register
+    static constexpr uint8_t    CONFIG          = 0x00;  // Configuration Register
+    static constexpr uint8_t    EN_AA           = 0x01;  // Enable "Auto Acknowledgment"
+    static constexpr uint8_t    EN_RXADDR       = 0x02;  // Enable RX Addresses
+    static constexpr uint8_t    SETUP_AW        = 0x03;  // Setup of Address Widths
+    static constexpr uint8_t    SETUP_RETR      = 0x04;  // Setup of Automatic Retransmission
+    static constexpr uint8_t    RF_CH           = 0x05;  // RF Channel
+    static constexpr uint8_t    RF_SETUP        = 0x06;  // RF Setup Register
+    static constexpr uint8_t    STATUS          = 0x07;  // Status Register
+    static constexpr uint8_t    OBSERVE_TX      = 0x08;  // Observe TX
+    static constexpr uint8_t    CD              = 0x09;  // Carrier Detect
+    static constexpr uint8_t    RX_ADDR_P0      = 0x0A;  // Receive Address Data Pipe 0
+    static constexpr uint8_t    TX_ADDR         = 0x10;  // Transmit Address
+    static constexpr uint8_t    RX_PW_P0        = 0x11;  // Number of Bytes in RX Payload
+    static constexpr uint8_t    FIFO_STATUS     = 0x17;  // FIFO Status Register
+    static constexpr uint8_t    DYNPD           = 0x1C;  // Enable Dynamic Payload Length
+    static constexpr uint8_t    FEATURE         = 0x1D;  // Feature Register
 
-    // Класс для битов Config регистра
     class Config
     {
     public:
-        static constexpr uint8_t    PrimRx        = 1 << 0;  // Primary Receiver/TX
-        static constexpr uint8_t    PwrUp         = 1 << 1;  // Power Up
-        static constexpr uint8_t    Crco          = 1 << 2;  // CRC Encoding Scheme
-        static constexpr uint8_t    EnCrc         = 1 << 3;  // Enable CRC
-        static constexpr uint8_t    MaskMaxRt     = 1 << 4;  // Mask MAX_RT Interrupt
-        static constexpr uint8_t    MaskTxDs      = 1 << 5;  // Mask TX_DS Interrupt
-        static constexpr uint8_t    MaskRxDr      = 1 << 6;  // Mask RX_DR Interrupt
+        static constexpr uint8_t    PRIM_RX       = 1 << 0;  // Primary Receiver/TX
+        static constexpr uint8_t    PWR_UP        = 1 << 1;  // Power Up
+        static constexpr uint8_t    CRCO          = 1 << 2;  // CRC Encoding Scheme
+        static constexpr uint8_t    EN_CRC        = 1 << 3;  // Enable CRC
+        static constexpr uint8_t    MASK_MAX_RT   = 1 << 4;  // Mask MAX_RT Interrupt
+        static constexpr uint8_t    MASK_TX_DS    = 1 << 5;  // Mask TX_DS Interrupt
+        static constexpr uint8_t    MASK_RX_DR    = 1 << 6;  // Mask RX_DR Interrupt
     };
 
-    // Класс для битов Status регистра
     class Status
     {
     public:
-        static constexpr uint8_t    TxFull        = 1 << 0;  // TX FIFO Full Flag
-        static constexpr uint8_t    RxPno         = 0x0E;    // RX Pipe Number (bits 3:1)
-        static constexpr uint8_t    MaxRt         = 1 << 4;  // Max Retransmits Reached
-        static constexpr uint8_t    TxDs          = 1 << 5;  // Data Sent TX FIFO
-        static constexpr uint8_t    RxDr          = 1 << 6;  // Data Ready RX FIFO
+        static constexpr uint8_t    TX_FULL       = 1 << 0;  // TX FIFO Full Flag
+        static constexpr uint8_t    RX_P_NO       = 0x0E;    // RX Pipe Number (bits 3:1)
+        static constexpr uint8_t    MAX_RT        = 1 << 4;  // Max Retransmits Reached
+        static constexpr uint8_t    TX_DS         = 1 << 5;  // Data Sent TX FIFO
+        static constexpr uint8_t    RX_DR         = 1 << 6;  // Data Ready RX FIFO
         
-        // Метод для получения номера трубы
         static constexpr uint8_t GetPipe(uint8_t status) {
-            return (status & RxPno) >> 1;
+            return (status & RX_P_NO) >> 1;
         }
     };
 
-    // Класс для SetupAw регистра
     class SetupAw
     {
     public:
@@ -61,17 +57,20 @@ public:
         static constexpr uint8_t    Aw5Bytes      = 0x03;  // 5-byte address length
     };
 
-    // Класс для RfSetup регистра
     class RfSetup
     {
     public:
-        static constexpr uint8_t    RfDrLow       = 1 << 5;  // RF Data Rate 250kbps
-        static constexpr uint8_t    RfDrHigh      = 1 << 3;  // RF Data Rate 2Mbps
-        static constexpr uint8_t    RfPwrLow      = 1 << 1;  // RF Output Power -12dBm
-        static constexpr uint8_t    RfPwrHigh     = 1 << 2;  // RF Output Power 0dBm
+        static constexpr uint8_t    PLL_LOCK      = 1 << 4;  // Force PLL lock signal. Only used in test
+        static constexpr uint8_t    RF_DR_1Mbps   = 0 << 3;  // RF Data Rate 1 Mbps
+        static constexpr uint8_t    RF_DR_2Mbps   = 1 << 3;  // RF Data Rate 2 Mbps
+        static constexpr uint8_t    RF_PWR_0dBm   = 3 << 1;  // RF Output Power 0 dBm
+        static constexpr uint8_t    RF_PWR_6dBm   = 2 << 1;  // RF Output Power -6 dBm
+        static constexpr uint8_t    RF_PWR_12dBm  = 1 << 1;  // RF Output Power -12 dBm
+        static constexpr uint8_t    RF_PWR_18dBm  = 0 << 1;  // RF Output Power -18 dBm
+        static constexpr uint8_t    LNA_HCURR     = 1 << 0;  // Setup LNA gain
     };
 
-    // SPI команды
+    // SPI commands
     static constexpr uint8_t    CmdReadRegister   = 0x00;  // Read command
     static constexpr uint8_t    CmdWriteRegister  = 0x20;  // Write command
     static constexpr uint8_t    CmdReadRxPayload  = 0x61;  // Read RX payload

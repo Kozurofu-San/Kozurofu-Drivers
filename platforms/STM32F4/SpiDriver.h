@@ -306,7 +306,7 @@ class SpiDriver : public ISpi
     {
         if (_cs)
         {
-            _cs->write(!_idleState);
+            _cs->write(_idleState);
             _idleState = static_cast<bool>(idleState);
         }
         return _spi.isInit();
