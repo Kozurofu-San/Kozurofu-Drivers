@@ -3,7 +3,7 @@
 #include "interface/Log.h"
 #include "interface/Itm.h"
 #include "interface/Rtt.h"
-#include "interface/Uart.h"
+#include "interface/Serial.h"
 
 #include <cstdarg>
 #include <cstdio>
@@ -18,10 +18,10 @@ namespace driver
 template <typename T>
 requires std::same_as<T, IItm> ||
          std::same_as<T, IRtt> ||
-         std::same_as<T, IUart>
+         std::same_as<T, ISerial>
 class LogDriver : public ILog
 {
-    static_assert(std::same_as<T, IItm> || std::same_as<T, IRtt> || std::same_as<T, IUart>,
+    static_assert(std::same_as<T, IItm> || std::same_as<T, IRtt> || std::same_as<T, ISerial>,
                 "Interface must be ITM, RTT or UART");
 
     public:

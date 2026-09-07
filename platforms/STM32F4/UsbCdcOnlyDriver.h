@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface/Uart.h"
+#include "interface/Serial.h"
 #include "interface/Timer.h"
 #include <stdio.h>
 
@@ -17,7 +17,7 @@ namespace driver
         return static_cast<uint8_t>((x >> 8) & 0xFF);
     }
     
-class UsbCdc: public IUart
+class UsbCdc: public ISerial
 {
     public:
 
@@ -80,8 +80,6 @@ class UsbCdc: public IUart
             EndPoint[i].txCounter = 0;
         }
         EndPoint[Ep0].rxBufferPtr = rxBufferEp0;    // RX Buffer for EP0
-        EndPoint[Ep1].rxBufferPtr = rxBufferEp1;	// RX Buffer for CDC data
-        // EndPoint[Ep2].rxBufferPtr = rxBufferEp2;	// RX Buffer for MSC data
 
         // Interrupts
         NVIC_SetPriority(OTG_FS_IRQn, 6);
@@ -186,7 +184,7 @@ class UsbCdc: public IUart
             }
             else if ((status & USB_OTG_GRXSTSP_PKTSTS) ==  StsSetupUpdt)  // 0110: SETUP data packet received
             {
-                // Read FFIO
+                // Read FIFO
                 setup_pkt_data.rawData[0] = *fifo(0);
                 setup_pkt_data.rawData[1] = *fifo(0);
             }
@@ -223,6 +221,7 @@ class UsbCdc: public IUart
     void setBuffer(uint8_t *buffer, size_t size) override
     {
         _buffer = buffer;
+        EndPoint[Ep1].rxBufferPtr = _buffer;	// RX Buffer for CDC data
         _bufferSize = size;
     }
     
@@ -270,7 +269,7 @@ class UsbCdc: public IUart
         // If unprocessed data length exceeds Max buffer length, it has to be rewritten
         if (dfifo && ((EndPoint[dfifo].rxCounter + len) > MaxPacketSize))
         {
-            EndPoint[dfifo].rxBufferPtr = rxBufferEp1;
+            EndPoint[dfifo].rxBufferPtr = _buffer;
             EndPoint[dfifo].rxCounter = 0;
         }
 
@@ -470,7 +469,7 @@ class UsbCdc: public IUart
     void enumerateSetup()
     {
         uint16_t len = setup_pkt_data.setupPacket.wLength;
-        uint8_t *ptr = rxBufferEp1;
+        uint8_t *ptr = _buffer;
         printf(" s%04Xv%04X[%d]", setup_pkt_data.setupPacket.wRequest, setup_pkt_data.setupPacket.wValue, len);
         switch(setup_pkt_data.setupPacket.wRequest)
         {
@@ -636,8 +635,6 @@ class UsbCdc: public IUart
     static constexpr uint16_t RxBufferEp0Size = 8;
     
     uint8_t rxBufferEp0[RxBufferEp0Size];
-    uint8_t rxBufferEp1[MaxPacketSize];
-    uint8_t rxBufferEp2[MaxPacketSize];
     
     typedef enum
     {

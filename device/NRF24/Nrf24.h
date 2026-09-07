@@ -37,7 +37,7 @@ class Nrf24Driver
 
         _isInit = true;
 
-        readCmd(Nrf24::SETUP_AW, _buffer, 1);
+        readCmd(Nrf24::SETUP_AW, _buffer, 10);
         _isInit &= _buffer[0] == 0x3;
         readCmd(Nrf24::RF_CH,    _buffer, 1);
         _isInit &= _buffer[0] == 0x2;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface/Uart.h"
+#include "interface/Serial.h"
 
 #include "stm32f1xx.h"
 
@@ -12,7 +12,7 @@
 namespace driver
 {
 
-class UsbCdc : public IUart
+class UsbCdc : public ISerial
 {
 public:
     UsbCdc()

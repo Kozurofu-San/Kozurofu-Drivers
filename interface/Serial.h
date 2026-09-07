@@ -6,11 +6,11 @@
 namespace driver
 {
 
-class IUart
+class ISerial
 {
     public:
 
-    virtual ~IUart() = default;
+    virtual ~ISerial() = default;
 
     virtual bool write(uint8_t *data, size_t len) = 0;
     virtual bool read (uint8_t *data, size_t len) = 0;

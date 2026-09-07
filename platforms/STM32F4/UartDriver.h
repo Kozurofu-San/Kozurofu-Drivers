@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface/Uart.h"
+#include "interface/Serial.h"
 
 #include "stm32f4xx.h"
 
@@ -11,7 +11,7 @@ extern uint32_t SystemCoreClock;
 namespace driver
 {
 
-class UartDriver : public IUart
+class UartDriver : public ISerial
 {
     public:
 

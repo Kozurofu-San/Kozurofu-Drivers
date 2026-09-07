@@ -3,7 +3,7 @@
 #include "Ld2410Const.h"
 
 #include "interface/Presence.h"
-#include "interface/Uart.h"
+#include "interface/Serial.h"
 #include "interface/Gpio.h"
 #include "interface/Timer.h"
 
@@ -43,7 +43,7 @@ class Ld2410Driver : IPresence
 {
     public:
 
-    Ld2410Driver(IUart &p, ITimer &timer)
+    Ld2410Driver(ISerial &p, ITimer &timer)
         : _p(p), _timer(timer)
     {
     }
