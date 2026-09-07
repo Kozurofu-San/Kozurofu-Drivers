@@ -2,6 +2,7 @@
 
 #include "Bmp280Const.h"
 
+#include "interface/I2c.h"
 #include "interface/Temperature.h"
 #include "interface/Pressure.h"
 #include "interface/Gpio.h"
