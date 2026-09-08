@@ -39,9 +39,9 @@ class Nrf24Driver
 
         readCmd(Nrf24::SETUP_AW, _buffer, 10);
         _isInit &= _buffer[0] == 0x3;
-        readCmd(Nrf24::RF_CH,    _buffer, 1);
+        readCmd(Nrf24::RF_CH, _buffer, 1);
         _isInit &= _buffer[0] == 0x2;
-        readCmd(Nrf24::STATUS,  _buffer, 1);
+        readCmd(Nrf24::STATUS, _buffer, 1);
         _isInit &= _buffer[0] == 0xE;
 
         return _isInit;
@@ -74,11 +74,6 @@ class Nrf24Driver
     ITimer &_timer;
 
     uint8_t _buffer[20];
-
-    uint8_t _manufacturerId = 0;
-    uint8_t _type = 0;
-    uint8_t _capacity = 0;
-    uint64_t _uniqueId = 0;
 
     bool _isInit = false;
 };

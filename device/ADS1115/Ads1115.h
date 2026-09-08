@@ -49,6 +49,14 @@ class Ads1115Driver : IAdc
             return false;
         }
 
+        if (_p.getSpeed() > 3'400'000)
+        {
+            return false;
+        }
+
+        auto ret = read(Ads1115::Config);   // Expected 0x8583
+        printf("Ads1115 Config reg %X\n", ret);
+
         _isInit = true;
         
         return _isInit;
@@ -82,11 +90,12 @@ class Ads1115Driver : IAdc
 
     static const size_t Timeout = 10;
 
-    bool write(uint8_t addr, uint8_t data)
+    bool write(uint8_t addr, uint16_t data)
     {
         _p.start();
         _p.address(II2c::Write);
         _p.write(addr);
+        _p.write(data >> 8);
         _p.write(data);
         _p.stop();
         return true;
@@ -95,10 +104,11 @@ class Ads1115Driver : IAdc
     uint16_t read(uint8_t addr)
     {
         uint16_t ret;
-        uint16_t *ptr = &ret;
+        uint8_t *ptr = reinterpret_cast<uint8_t *>(&ret);
         _p.start();
         _p.address(II2c::Write);
         _p.write(addr);
+        _p.stop();
         _p.start();
         _p.address(II2c::Read);
         *ptr++ = _p.read();

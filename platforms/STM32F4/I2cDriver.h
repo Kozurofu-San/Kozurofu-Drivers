@@ -19,6 +19,7 @@ public:
     {
     }
 
+    // Speed is a clockrate in Hz
     bool init(uint32_t speed)
     {
         // Clock enable
@@ -26,13 +27,14 @@ public:
         else if (_i2c == I2C2) RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
 
         // Speed calculation
-        uint32_t busPrescalerPos = RCC_CFGR_PPRE1_Pos;
-        uint32_t busPrescaler = (RCC->CFGR >> busPrescalerPos) & 0x7;
-        busPrescaler = (busPrescaler < 4) ? 1 : (1 << (busPrescaler - 3));
-        uint32_t busSpeed = SystemCoreClock / busPrescaler / 1'000'000;
-        if ((busSpeed < DivMin) || (busSpeed > DivMax))
+        uint32_t busSpeed = SystemCoreClock;
+        uint32_t busDiv = (RCC->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos;
+        if (busDiv >= 4)
+            busSpeed >>= (busDiv - 3);          // divide by 2, 4, 8 or 16
+        busSpeed = (busSpeed + 500000) / 1000000;   // round to nearest MHz
+
+        if ((busSpeed < SpeedMin) || (busSpeed > SpeedMax))
         {
-            printf("Desired speed %lu is out of limits %u - %u", busSpeed, DivMin, DivMax);
             return false;
         }
         
@@ -182,8 +184,8 @@ private:
     bool _isInit = false;
     bool _transferOk = false;
 
-    static constexpr uint8_t DivMin = 2;   // MHz
-    static constexpr uint8_t DivMax = 36;  // MHz
+    static constexpr uint8_t SpeedMin = 2;   // MHz
+    static constexpr uint8_t SpeedMax = 42;  // MHz
     static constexpr uint32_t Timeout = 1'000'000;
     static constexpr uint32_t ErrorFlags = I2C_SR1_AF | I2C_SR1_BERR |
                                            I2C_SR1_ARLO | I2C_SR1_OVR;
@@ -201,7 +203,7 @@ class I2cDriver: public II2c
     bool init(uint8_t address)
     {
         _address = address << 1;
-        return true;
+        return _i2c.check(address);
     };
     
     inline void start() override

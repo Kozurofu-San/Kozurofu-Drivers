@@ -3,7 +3,7 @@
 #include <cstdint>
 
 // Pressure sensor
-class Ads
+class Ads1115
 {
     public:
 
