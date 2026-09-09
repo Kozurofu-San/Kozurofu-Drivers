@@ -149,18 +149,16 @@ class SpiDriver : public ISpi
         High = true
     };
 
-    SpiDriver(SpiController &spi)
-        : _spi(spi)
+    SpiDriver(SpiController &spi, IGpio* cs = nullptr, uint8_t idleState = true)
+        : _spi(spi), _cs(cs), _idleState(idleState)
     {
     }
 
-    void init(IGpio* cs = nullptr, uint8_t idleState = true)
+    void init()
     {
         _spi.getInstance()->CR1 &= ~SPI_CR1_SPE;
-        _idleState = idleState;
-        if (cs)
+        if (_cs)
         {
-            _cs = cs;
             // A supplied GPIO is a software-controlled CS.  SSOE would
             // hand PA4/NSS to the SPI peripheral and keep it asserted for
             // the whole time SPI is enabled, preventing devices such as the

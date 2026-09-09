@@ -5,7 +5,7 @@
 class Nrf24
 {
 public:
-    // Основные регистры
+    // Main regs
     static constexpr uint8_t    CONFIG          = 0x00;  // Configuration Register
     static constexpr uint8_t    EN_AA           = 0x01;  // Enable "Auto Acknowledgment"
     static constexpr uint8_t    EN_RXADDR       = 0x02;  // Enable RX Addresses
