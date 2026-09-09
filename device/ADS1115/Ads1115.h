@@ -32,11 +32,11 @@
 namespace driver
 {
 
-class Ads1115Driver : IAdc
+class Ads1115Controller
 {
     public:
 
-    Ads1115Driver(II2c &p)
+    Ads1115Controller(II2c &p)
         : _p(p)
     {
     }
@@ -49,35 +49,39 @@ class Ads1115Driver : IAdc
             return false;
         }
 
-        if (_p.getSpeed() > 3'400'000)
+        if (_p.getSpeed() > MaxSpeed)
         {
             return false;
         }
 
-        auto ret = read(Ads1115::Config);   // Expected 0x8583
-        printf("Ads1115 Config reg %X\n", ret);
+        if (read(Ads1115::Config) == 0x8583)
+        {
+            _isInit = true;
+        }
 
-        _isInit = true;
+        _config = 
+            Ads1115::OS                 |   // Start a single conversion (when in power-down state)
+            2 << Ads1115::PGA_Pos       |   // FSR = ±2.048V
+            4 << Ads1115::DR_Pos        |   // 128SPS
+            3 << Ads1115::COMP_QUE_Pos  ;   // Disable comparator and set ALERT/RDY pin to high-impedance
+        write(Ads1115::Config, _config);
         
         return _isInit;
     }
 
-    bool start() override
+    bool start()
     {
+        // TODO: Start conversion
         return true;
     }
 
-    uint16_t getRawValue() override
+    uint16_t getRawValue(uint8_t channel)
     {
-        return 0;
+        write(Ads1115::Config, _config | ((channel + 4) << Ads1115::MUX_Pos));
+        return read(Ads1115::Conversion);
     }
     
-    uint32_t getVoltage() override
-    {
-        return 0;
-    }
-
-    bool isInit() override
+    bool isInit()
     {
         return _isInit;
     }
@@ -88,7 +92,8 @@ class Ads1115Driver : IAdc
     
     bool _isInit = false;
 
-    static const size_t Timeout = 10;
+    uint16_t _config;
+    static const uint32_t MaxSpeed = 3'400'000;
 
     bool write(uint8_t addr, uint16_t data)
     {
@@ -103,19 +108,66 @@ class Ads1115Driver : IAdc
     
     uint16_t read(uint8_t addr)
     {
-        uint16_t ret;
-        uint8_t *ptr = reinterpret_cast<uint8_t *>(&ret);
         _p.start();
         _p.address(II2c::Write);
         _p.write(addr);
-        _p.stop();
         _p.start();
         _p.address(II2c::Read);
-        *ptr++ = _p.read();
-        *ptr = _p.read(true);
-        _p.stop();
-        return true;
+        uint16_t ret = static_cast<uint16_t>(_p.read()) << 8;
+        ret |= _p.read(true);
+        // _p.stop();
+        return ret;
     }
     
 };
+
+class Ads1115Driver : public IAdc
+{
+    public:
+
+    Ads1115Driver(Ads1115Controller &p, uint8_t channel)
+        : _p(p), _channel(channel)
+    {
+    }
+
+    bool init()
+    {
+        // Init check
+        if (!_p.isInit())
+        {
+            return false;
+        }
+
+        return _isInit;
+    }
+
+    bool start() override
+    {
+        return _p.start();
+    }
+
+    uint16_t getRawValue() override
+    {
+        return _p.getRawValue(_channel);
+    }
+    
+    uint32_t getVoltage() override
+    {
+        return _p.getRawValue(_channel) * 3300 / 65535;
+    }
+
+    bool isInit() override
+    {
+        return _isInit;
+    }
+    
+    private:
+
+    Ads1115Controller &_p;
+    
+    bool _isInit = false;
+    uint8_t _channel;
+
+};
+
 }
