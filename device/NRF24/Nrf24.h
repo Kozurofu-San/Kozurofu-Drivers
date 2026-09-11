@@ -1,16 +1,18 @@
 #pragma once
 
+#include "Nrf24Const.h"
+
 #include "interface/Spi.h"
+#include "interface/Serial.h"
 #include "interface/Gpio.h"
 #include "interface/Timer.h"
-#include "Nrf24Const.h"
 
 #include <cstdint>
 
 namespace driver
 {
 
-class Nrf24Driver
+class Nrf24Driver: public ISerial
 {
     public:
 
@@ -34,24 +36,50 @@ class Nrf24Driver
             return false;
         }
 
-        _isInit = true;
+        _ce.write(0);
 
-        _ce.write(1);
-        uint8_t status;
-
-        status = readReg(Nrf24::STATUS);
-        // writeReg(Nrf24::RF_CH, 0x55);
-        // status = readReg(Nrf24::RF_CH);
+        // Check if SPI works
+        uint8_t status = readReg(Nrf24::STATUS);
+        if (status = 0x0E)
+        {
+            _isInit = true;
+        }
 
         return _isInit;
     }
 
-    void write(uint8_t *data, size_t len)
+    bool write(uint8_t *data, size_t len) override
     {
+        // TODO: implement
+        return false;
     }
 
-    void read (uint8_t *data, size_t len)
+    bool read (uint8_t *data, size_t len) override
     {
+        // TODO: implement
+        return false;
+    }
+
+    void setCallback(void (*cb)(uint32_t)) override
+    {
+        _cb = cb;
+    }
+
+    void setBuffer(uint8_t *buffer, size_t size) override
+    {
+        _buffer = buffer;
+        _bufferSize = size;
+    }
+
+    // Callback when IRQ is set
+    void interrupt()
+    {
+        _cb(0);
+    }
+    
+    uint32_t getSpeed() const override
+    {
+        return _speed;
     }
 
     bool isInit()// override
@@ -60,6 +88,20 @@ class Nrf24Driver
     }
 
     private:
+
+    ISpi &_p;
+    IGpio &_ce;
+    IGpio &_irq;
+    ITimer &_timer;
+
+    void (*_cb)(uint32_t) = nullptr;
+    uint8_t *_buffer = nullptr;
+    size_t _bufferSize = 0;
+
+    static constexpr uint32_t MaxSpeed = 8'000'000; // Hz
+
+    uint32_t _speed; // Speed in Hz
+    bool _isInit = false;
 
     uint8_t read(uint8_t reg, uint8_t *data, size_t len)
     {
@@ -82,33 +124,21 @@ class Nrf24Driver
     uint8_t readReg(uint8_t reg)
     {
         _p.enable();
-        // _timer.delay(1);
-        _p.transfer(Nrf24::CmdReadRegister | reg);
-        // _timer.delay(1);
+        uint8_t status = _p.transfer(Nrf24::CmdReadRegister | reg);
         uint8_t ret = _p.transfer(0);
         _p.disable();
         return ret;
     }
 
-    bool writeReg(uint8_t reg, uint8_t data)
+    uint8_t writeReg(uint8_t reg, uint8_t data)
     {
         _p.enable();
-        _p.transfer(Nrf24::CmdWriteRegister | reg);
+        uint8_t status = _p.transfer(Nrf24::CmdWriteRegister | reg);
         _p.transfer(data);
         _p.disable();
-        return true;
+        return status;
     }
 
-    ISpi &_p;
-    IGpio &_ce;
-    IGpio &_irq;
-    ITimer &_timer;
-
-    uint8_t _buffer[20];
-
-    static constexpr uint32_t MaxSpeed = 8'000'000; // Hz
-
-    bool _isInit = false;
 };
 
 }
